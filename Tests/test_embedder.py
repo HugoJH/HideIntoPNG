@@ -15,5 +15,4 @@ def test_insert_payload():
     resultFilePath = join(dirname(__file__), "results/ninjaThatAteTheRamen.png")
     mockfileFilePath = join(dirname(__file__), "mock/ninjaThatAteTheRamen.png")
     embedder.insertPayload(containerFilePath, payloadFilePath, resultFilePath)
-
     assert cmp(mockfileFilePath, resultFilePath, shallow=False)
