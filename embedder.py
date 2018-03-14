@@ -1,7 +1,7 @@
 from shutil import copyfile
-from os import SEEK_END
+from os import SEEK_END, SEEK_SET, SEEK_CUR
 from os.path import basename
-from struct import pack
+from struct import pack, unpack
 from binascii import crc32
 
 
@@ -41,4 +41,46 @@ class Embedder:
         return pack('!I', (crc32(bytes_for_crc) & 0xffffffff))
 
     def extractPayload(self, containerFilePath):
-        pass
+      with open(containerFilePath, 'rb+') as containerFileFD:
+          self._skip_signature(containerFileFD)
+          payload = {}
+
+          while True:
+             chunk_size = self._read_chunk_size(containerFileFD)
+             chunk_type = self._read_chunk_type(containerFileFD)
+
+             if ((chunk_type != self.META_CHUNK_TYPE) and
+                (chunk_type != self.IEND_CHUNK_TYPE)):
+                self._skip_to_next_chunk(containerFileFD, chunk_size)
+             elif chunk_type == self.META_CHUNK_TYPE:
+                meta_chunk_bytes = self._read_chunk_content(containerFileFD, chunk_size)
+                self._skip_crc(containerFileFD)
+                chunk_size = self._read_chunk_size(containerFileFD)
+                chunk_type = self._read_chunk_type(containerFileFD)
+                content_chunk_bytes = self._read_chunk_content(containerFileFD, chunk_size)
+                payload['filename'] = meta_chunk_bytes
+                payload['data'] = content_chunk_bytes
+                break
+             elif chunk_type == self.IEND_CHUNK_TYPE:
+                return "ERROR"
+
+      return payload
+
+    def _skip_signature(self, file):
+      file.seek(self.SIGNATURE_LENGTH, SEEK_SET)
+
+    def _skip_to_next_chunk(self, file, chunk_size):
+        file.seek(chunk_size, SEEK_CUR)
+        self._skip_crc(file)
+
+    def _skip_crc(self, file):
+        file.seek(self.CHUNK_CRC_LENGTH, SEEK_CUR)
+
+    def _read_chunk_size(self, file):
+        return unpack("!i", file.read(self.CHUNK_SIZE_LENGTH))[0]
+
+    def _read_chunk_type(self, file):
+        return file.read(self.CHUNK_TYPE_LENGTH)
+
+    def _read_chunk_content(self, file, chunk_size):
+        return file.read(chunk_size)
