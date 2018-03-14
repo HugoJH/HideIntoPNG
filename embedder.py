@@ -39,3 +39,6 @@ class Embedder:
         bytes_for_crc.extend(chunk_type_bytes)
         bytes_for_crc.extend(chunk_data_bytes)
         return pack('!I', (crc32(bytes_for_crc) & 0xffffffff))
+
+    def extractPayload(self, containerFilePath):
+        pass
