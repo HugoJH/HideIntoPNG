@@ -2,17 +2,16 @@ from ..embedder import Embedder
 from os import makedirs
 from os.path import exists, join, dirname
 from shutil import rmtree
-from filecmp import cmp
 
 def test_insert_payload():
     _resetResultsFolder()
     embedder = Embedder()
     containerFilePath = join(dirname(__file__), "mock/ninja.png")
     payloadFilePath = join(dirname(__file__), "mock/ramen.png")
-    resultFilePath = join(dirname(__file__), "results/ninjaThatAteTheRamen.png")
     mockfileFilePath = join(dirname(__file__), "mock/ninjaThatAteTheRamen.png")
-    embedder.insertPayload(containerFilePath, payloadFilePath, resultFilePath)
-    assert cmp(mockfileFilePath, resultFilePath, shallow=False)
+    result = embedder.insertPayload(containerFilePath, payloadFilePath)
+    with open(mockfileFilePath, "rb") as mockFD:
+        assert mockFD.read() == result
 
 def test_extract_payload():
     _resetResultsFolder()

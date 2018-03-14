@@ -1,4 +1,4 @@
-import Crypto.Random
+from Crypto import Random
 from Crypto.Cipher import AES
 import hashlib
 
@@ -9,7 +9,7 @@ class Encrypter:
     SALT_SIZE = 16
 
     def encryptData(self, data, passphrase):
-        salt = Crypto.Random.get_random_bytes(self.SALT_SIZE)
+        salt = Random.get_random_bytes(self.SALT_SIZE)
 
         key = self._generateKey(bytearray(passphrase.encode('utf-8')) + bytearray(salt), self.ITERATIONS)
         cipher = AES.new(key, AES.MODE_ECB)
