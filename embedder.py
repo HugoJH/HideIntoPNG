@@ -15,9 +15,10 @@ class Embedder:
     CHUNK_SIZE_LENGTH = 4
     CHUNK_TYPE_LENGTH = 4
     CHUNK_CRC_LENGTH = 4
+    extraction_index = 0
 
-    def insertPayload(self, containerData, payloadMeta, payloadData):
-        result = containerData[:self.FILEPOS_BEFORE_ENDCHUNK] + self._create_chunk(self.META_CHUNK_TYPE, basename(payloadMeta).encode('utf-8'))
+    def insertPayload(self, containerData, payloadMetaData, payloadData):
+        result = containerData[:self.FILEPOS_BEFORE_ENDCHUNK] + self._create_chunk(self.META_CHUNK_TYPE, payloadMetaData)
         result += self._create_chunk(self.CONTENT_CHUNK_TYPE, payloadData)
 
         result += self._create_chunk(self.IEND_CHUNK_TYPE, '')
@@ -38,47 +39,51 @@ class Embedder:
         bytes_for_crc.extend(chunk_data_bytes)
         return pack('!I', (crc32(bytes_for_crc) & 0xffffffff))
 
-    def extractPayload(self, containerFilePath):
-      with open(containerFilePath, 'rb+') as containerFileFD:
-          self._skip_signature(containerFileFD)
-          payload = {}
+    def extractPayload(self, containerData):
+        self._skip_signature(containerData)
+        payload = {}
 
-          while True:
-             chunk_size = self._read_chunk_size(containerFileFD)
-             chunk_type = self._read_chunk_type(containerFileFD)
+        while True:
+            chunkSize = self._read_chunk_size(containerData)
+            chunkType = self._read_chunk_type(containerData)
 
-             if ((chunk_type != self.META_CHUNK_TYPE) and
-                (chunk_type != self.IEND_CHUNK_TYPE)):
-                self._skip_to_next_chunk(containerFileFD, chunk_size)
-             elif chunk_type == self.META_CHUNK_TYPE:
-                meta_chunk_bytes = self._read_chunk_content(containerFileFD, chunk_size)
-                self._skip_crc(containerFileFD)
-                chunk_size = self._read_chunk_size(containerFileFD)
-                chunk_type = self._read_chunk_type(containerFileFD)
-                content_chunk_bytes = self._read_chunk_content(containerFileFD, chunk_size)
+            if ((chunkType != self.META_CHUNK_TYPE) and
+                (chunkType != self.IEND_CHUNK_TYPE)):
+                self._skip_to_next_chunk(chunkSize)
+            elif chunkType == self.META_CHUNK_TYPE:
+                meta_chunk_bytes = self._read_chunk_content(containerData, chunkSize)
+                self._skip_crc()
+                chunkSize = self._read_chunk_size(containerData)
+                chunkType = self._read_chunk_type(containerData)
+                content_chunk_bytes = self._read_chunk_content(containerData, chunkSize)
                 payload['filename'] = meta_chunk_bytes
                 payload['data'] = content_chunk_bytes
                 break
-             elif chunk_type == self.IEND_CHUNK_TYPE:
+            elif chunkType == self.IEND_CHUNK_TYPE:
                 return "ERROR"
+        return payload
 
-      return payload
+    def _skip_signature(self, data):
+        self.extraction_index += self.SIGNATURE_LENGTH
 
-    def _skip_signature(self, file):
-      file.seek(self.SIGNATURE_LENGTH, SEEK_SET)
+    def _skip_to_next_chunk(self, chunk_size):
+        self.extraction_index += chunk_size
+        self._skip_crc()
 
-    def _skip_to_next_chunk(self, file, chunk_size):
-        file.seek(chunk_size, SEEK_CUR)
-        self._skip_crc(file)
+    def _skip_crc(self):
+        self.extraction_index += self.CHUNK_CRC_LENGTH
 
-    def _skip_crc(self, file):
-        file.seek(self.CHUNK_CRC_LENGTH, SEEK_CUR)
+    def _read_chunk_size(self, data):
+        chunk_size = unpack("!i", data[self.extraction_index:self.extraction_index + self.CHUNK_SIZE_LENGTH])[0]
+        self.extraction_index += self.CHUNK_SIZE_LENGTH
+        return chunk_size
 
-    def _read_chunk_size(self, file):
-        return unpack("!i", file.read(self.CHUNK_SIZE_LENGTH))[0]
+    def _read_chunk_type(self, data):
+        chunkType = data[self.extraction_index:self.extraction_index + self.CHUNK_TYPE_LENGTH]
+        self.extraction_index += self.CHUNK_TYPE_LENGTH
+        return chunkType
 
-    def _read_chunk_type(self, file):
-        return file.read(self.CHUNK_TYPE_LENGTH)
-
-    def _read_chunk_content(self, file, chunk_size):
-        return file.read(chunk_size)
+    def _read_chunk_content(self, data, chunkSize):
+        chunkContent = data[self.extraction_index:self.extraction_index + chunkSize]
+        self.extraction_index += chunkSize
+        return chunkContent

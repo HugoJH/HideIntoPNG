@@ -1,6 +1,6 @@
 from ..embedder import Embedder
 from os import makedirs
-from os.path import exists, join, dirname
+from os.path import exists, join, dirname, basename
 from shutil import rmtree
 
 def test_insert_payload():
@@ -18,7 +18,7 @@ def test_insert_payload():
     with open(payloadFilePath, "rb") as payloadFD:
         payloadData = payloadFD.read()
 
-    result = embedder.insertPayload(containerData, payloadFilePath, payloadData)
+    result = embedder.insertPayload(containerData, basename(payloadFilePath).encode('utf-8'), payloadData)
     with open(mockfileFilePath, "rb") as mockFD:
         assert mockFD.read() == result
 
@@ -26,10 +26,11 @@ def test_extract_payload():
     _resetResultsFolder()
     embedder = Embedder()
 
-    containerFileFilePath = join(dirname(__file__),
+    containerFilePath = join(dirname(__file__),
         "mock/ninjaThatAteTheRamen.png")
-
-    payload = embedder.extractPayload(containerFileFilePath)
+    payload = b''
+    with (open(containerFilePath, "rb")) as containerFD:
+        payload = embedder.extractPayload(containerFD.read())
 
     with open(join(dirname(__file__), "mock/", "ramen.png"),"rb") as mockFD:
         assert payload['data'] == mockFD.read()
