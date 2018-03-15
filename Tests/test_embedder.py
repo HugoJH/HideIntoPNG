@@ -9,7 +9,16 @@ def test_insert_payload():
     containerFilePath = join(dirname(__file__), "mock/ninja.png")
     payloadFilePath = join(dirname(__file__), "mock/ramen.png")
     mockfileFilePath = join(dirname(__file__), "mock/ninjaThatAteTheRamen.png")
-    result = embedder.insertPayload(containerFilePath, payloadFilePath)
+
+    containerData = b''
+    with open(containerFilePath, "rb") as containerFD:
+        containerData = containerFD.read()
+
+    payloadData = b''
+    with open(payloadFilePath, "rb") as payloadFD:
+        payloadData = payloadFD.read()
+
+    result = embedder.insertPayload(containerData, payloadFilePath, payloadData)
     with open(mockfileFilePath, "rb") as mockFD:
         assert mockFD.read() == result
 

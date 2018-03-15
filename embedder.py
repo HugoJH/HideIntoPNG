@@ -16,18 +16,12 @@ class Embedder:
     CHUNK_TYPE_LENGTH = 4
     CHUNK_CRC_LENGTH = 4
 
-    def insertPayload(self, containerFilePath, payloadFilePath):
+    def insertPayload(self, containerData, payloadMeta, payloadData):
+        result = containerData[:self.FILEPOS_BEFORE_ENDCHUNK] + self._create_chunk(self.META_CHUNK_TYPE, basename(payloadMeta).encode('utf-8'))
+        result += self._create_chunk(self.CONTENT_CHUNK_TYPE, payloadData)
 
-        container = b''
-        with open(containerFilePath, "rb+") as containerFD:
-            container = containerFD.read()
-
-        container = container[:self.FILEPOS_BEFORE_ENDCHUNK] + self._create_chunk(self.META_CHUNK_TYPE, basename(payloadFilePath).encode('utf-8'))
-        with open(payloadFilePath, "rb") as payloadfd:
-            container += self._create_chunk(self.CONTENT_CHUNK_TYPE, payloadfd.read())
-
-        container += self._create_chunk(self.IEND_CHUNK_TYPE, '')
-        return container
+        result += self._create_chunk(self.IEND_CHUNK_TYPE, '')
+        return result
 
 
     def _create_chunk (self, chunk_type_bytes, chunk_data_bytes):
