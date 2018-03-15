@@ -26,8 +26,8 @@ def test_extract_payload():
     _resetResultsFolder()
     embedder = Embedder()
 
-    containerFilePath = join(dirname(__file__),
-        "mock/ninjaThatAteTheRamen.png")
+    containerFilePath = join(dirname(__file__), "mock/ninjaThatAteTheRamen.png")
+
     payload = b''
     with (open(containerFilePath, "rb")) as containerFD:
         payload = embedder.extractPayload(containerFD.read())

@@ -1,5 +1,3 @@
-from shutil import copyfile
-from os import SEEK_END, SEEK_SET, SEEK_CUR
 from os.path import basename
 from struct import pack, unpack
 from binascii import crc32

@@ -1,6 +1,5 @@
 from os import makedirs
-from os.path import exists, join, dirname
-from shutil import rmtree
+from os.path import join, dirname
 from ..encrypter import Encrypter
 
 def test_encryption_workflow():

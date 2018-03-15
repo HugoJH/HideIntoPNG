@@ -15,7 +15,6 @@ class HideIntoPNG():
 
 			Returns:
 				bin: ContainerData with Data and Metadata embedded within.
-
 		"""
 
 		emb = Embedder()
@@ -41,12 +40,10 @@ class HideIntoPNG():
 		emb = Embedder()
 		enc = Encrypter()
 
-		containerData = b''
 		encryptedPayload = emb.extractPayload(containerWithPayloadData)
 
 		payload = {}
 		payload['meta'] = enc.decryptData(encryptedPayload['filename'], passPhrase)
 		payload['data'] = enc.decryptData(encryptedPayload['data'], passPhrase)
-
 
 		return payload
