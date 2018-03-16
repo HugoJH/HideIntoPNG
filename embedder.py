@@ -56,6 +56,7 @@ class Embedder:
                 content_chunk_bytes = self._read_chunk_content(containerData, chunkSize)
                 payload['filename'] = meta_chunk_bytes
                 payload['data'] = content_chunk_bytes
+                self.extraction_index = 0
                 break
             elif chunkType == self.IEND_CHUNK_TYPE:
                 return "ERROR"
