@@ -8,6 +8,7 @@ config = { 'name': 'HideIntoPNG',
            'author': 'Hugo Jiménez Hernández',
            'author_email': 'hjimenezhdez@gmail.com',
            'url': 'https://github.com/HugoJH/HideIntoPNG',
+           'packages':['hideintopng'],
            'entry_points': {
               'console_scripts': ['hip = hideintopng.__main__:main']
            },

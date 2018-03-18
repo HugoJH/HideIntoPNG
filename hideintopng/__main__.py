@@ -26,9 +26,16 @@ def hide(container, payload, passphrase):
 @click.argument('container', type=click.File('rb'))
 @click.argument('payload', type=click.File('rb'))
 @click.argument('output', type=click.File('wb'))
-@click.argument('passPhrase')
-def hideToFile(container, payload, output, passPhrase):
-	output.write(hidePayloadAndGetBytes(ContainerFilePath, payloadFilePath, passPhrase))
+@click.argument('passphrase')
+def hideToFile(container, payload, output, passphrase):
+	hip = HideIntoPNG()
+	contentBytes = b''
+	contentBytes = hip.hide(containerData=container.read(),
+                            payloadMetaData=basename(payload.name).encode("utf-8"),
+					        payloadData=payload.read(),
+					        passPhrase=passphrase)
+
+	output.write(contentBytes)
 
 
 @main.command()
@@ -45,18 +52,21 @@ def extract(container, passphrase):
 
 @main.command()
 @click.argument('container', type=click.File('rb'))
-@click.argument('outputFolder')
-@click.argument('passPhrase')
-def extractToFile(container, passPhrase, outputFolder=join(getcwd() + "results/")):
-	_prepareExtractionFolder(outputFolder)
-	payload = extractPayloadDataAndMetadataDict(container, passPhrase)
+@click.argument('passphrase')
+@click.argument('outputfolder', default=join(getcwd(), "results/"))
+def extractToFile(container, passphrase, outputfolder):
+	_prepareExtractionFolder(outputfolder)
+	hip = HideIntoPNG()
+	payloadDict = {}
+	payloadDict = hip.extract(containerWithPayloadData=container.read(),
+			                  passPhrase=passphrase)
 
-	with open(join(outputFolder, payload['filename']), "wb") as outputFD:
-		outputFD.write(payload['data'])
+	with open(join(outputfolder, payloadDict['filename'].decode('utf-8')), "wb") as outputFD:
+		outputFD.write(payloadDict['data'])
 
 def _prepareExtractionFolder(outputPath):
-	if not os.path.exists(os.path.dirname(outputPath)):
-		os.makedirs(os.path.dirname(outputPath))
+	if not exists(dirname(outputPath)):
+		makedirs(dirname(outputPath))
 
 if __name__ == "__main__":
 	main()
