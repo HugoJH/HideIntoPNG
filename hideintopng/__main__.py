@@ -3,7 +3,7 @@ from os.path import join, exists, dirname, basename
 from json import dumps
 from base64 import b64encode
 import click
-from .hideintopng import HideIntoPNG
+from hideintopng.hideintopng import HideIntoPNG
 
 @click.group()
 def main():
