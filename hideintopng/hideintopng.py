@@ -43,7 +43,7 @@ class HideIntoPNG():
 		encryptedPayload = emb.extractPayload(containerWithPayloadData)
 
 		payload = {}
-		payload['meta'] = enc.decryptData(encryptedPayload['filename'], passPhrase)
+		payload['filename'] = enc.decryptData(encryptedPayload['filename'], passPhrase)
 		payload['data'] = enc.decryptData(encryptedPayload['data'], passPhrase)
 
 		return payload
