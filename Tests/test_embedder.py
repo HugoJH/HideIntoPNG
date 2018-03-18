@@ -1,7 +1,9 @@
-from ..embedder import Embedder
 from os import makedirs
 from os.path import exists, join, dirname, basename
 from shutil import rmtree
+
+from ..hideintopng.embedder import Embedder
+
 
 def test_insert_payload():
     _resetResultsFolder()

@@ -1,6 +1,6 @@
 from os import makedirs
 from os.path import join, dirname
-from ..encrypter import Encrypter
+from ..hideintopng.encrypter import Encrypter
 
 def test_encryption_workflow():
 	mockClearFileFilePath = join(dirname(__file__), "mock/ninja.png")

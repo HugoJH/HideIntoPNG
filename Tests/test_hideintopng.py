@@ -1,4 +1,4 @@
-from ..hideintopng import HideIntoPNG
+from ..hideintopng.hideintopng import HideIntoPNG
 
 from os.path import join, dirname, basename
 
@@ -19,4 +19,4 @@ def test_hide_into_png_workflow():
 
     with open(payloadFilePath, "rb") as mockFD:
         assert(extractedPayload['data'] == mockFD.read())
-    assert(extractedPayload['meta'] == basename(payloadFilePath).encode('utf-8'))
+    assert(extractedPayload['filename'] == basename(payloadFilePath).encode('utf-8'))
